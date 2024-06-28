@@ -24,6 +24,30 @@ scene.add(directionalLight);
 
 let ship: THREE.Object3D;
 const speed = 0.5;
+const tiltAmount = 0.2; 
+// const tiltSpeed = 0.05; TODO - Implement tilt speed
+
+
+// Particle system for fire effect
+const particleCount = 1000;
+const particles = new THREE.BufferGeometry();
+const particleMaterial = new THREE.PointsMaterial({
+  color: 0xff6600,
+  size: 0.2,
+  transparent: true,
+  opacity: 0.7,
+});
+
+const positions = [];
+for (let i = 0; i < particleCount; i++) {
+  positions.push((Math.random() - 0.5) * 1.5);
+  positions.push((Math.random() - 0.5) * 1.5);
+  positions.push((Math.random() - 0.5) * 1.5);
+}
+particles.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+const particleSystem = new THREE.Points(particles, particleMaterial);
+scene.add(particleSystem);
 
 // GLTF Loader
 const loader = new GLTFLoader();
@@ -36,9 +60,14 @@ loader.load(
     // Position the model
     ship.position.set(0, 0, 35);
     ship.rotation.y = Math.PI;  // Rotate the ship 180 degrees
+
+    particleSystem.position.set(0, 0, -10);
+    ship.add(particleSystem);
+
     const animate = () => {
       requestAnimationFrame(animate);
       updateMovement();
+      updateParticles();
       renderer.render(scene, camera);
     };
 
@@ -59,12 +88,29 @@ const move = {
 
 const updateMovement = () => {
   if (ship) {
+    ship.rotation.z = 0;
     if (move.forward) ship.position.z -= speed;
     if (move.backward) ship.position.z += speed;
-    if (move.left) ship.position.x -= speed;
-    if (move.right) ship.position.x += speed;
+    if (move.left){
+      ship.position.x -= speed;
+      ship.rotation.z = -tiltAmount;
+    };
+    if (move.right) {
+      ship.rotation.z = tiltAmount;
+      ship.position.x += speed;
+    }
   }
 };
+
+const updateParticles = () => {
+  const positions = particles.attributes.position.array;
+  for (let i = 0; i < particleCount * 3; i += 3) {
+    positions[i + 1] -= 0.01; // Move particles downwards
+    if (positions[i + 1] < -0.5) positions[i + 1] = 0.5; // Reset particle position
+  }
+  particles.attributes.position.needsUpdate = true;
+};
+
 
 const onDocumentKeyDown = (event: KeyboardEvent) => {
   console.log(event.which, "key down")
