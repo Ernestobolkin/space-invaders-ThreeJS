@@ -25,7 +25,7 @@ scene.add(directionalLight);
 let ship: THREE.Object3D;
 const speed = 0.5;
 const tiltAmount = 0.2; 
-// const tiltSpeed = 0.05; TODO - Implement tilt speed
+const tiltSpeed = 0.05; //TODO - Implement tilt speed
 
 
 // Particle system for fire effect
